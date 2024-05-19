@@ -1,0 +1,93 @@
+# @package _global_
+
+defaults:
+  - override /data: iter_dataset_jetclass_classification.yaml
+  - override /model: model_classifier_particleflow.yaml
+  - override /callbacks: classifier_callbacks.yaml
+  - override /trainer: gpu.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+project_name: "tokenization-classification"
+# project_name: "tokenization-classification-dev"  # for debugging
+tags: ["classification", "tokenization"]
+
+run_note: ""
+
+seed: 1603
+load_weights_from: false
+load_weights_strict: false
+
+
+data:
+  batch_size: 2048  # NOTE: adapt the limit_train_batches accordingly
+  # data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-18_14-47-13_beefy_striker_6faa_all_types # transformer 512 tokens
+  # data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-18_14-47-14_intensional_rigger_34b1_all_types # transformer 2048 tokens
+  # data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-19_19-51-10_unstilted_verticil_c9f8_all_types # transformer 4096 tokens
+  # data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-19_20-54-01_nonfissile_defect_a56f_all_types # transformer 8192 tokens
+  data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-18_14-57-31_slow_informing_ee18_all_types
+  dataset_kwargs_train:
+    max_n_files_per_type: 10
+  dataset_kwargs_common:
+    # token_reco_cfg:
+    #   start_token_included: true
+    #   end_token_included: true
+    #   config_file: ${data.data_dir}/config.yaml
+    #   ckpt_file: ${data.data_dir}/model_ckpt.ckpt
+    load_only_once: true
+    pad_length: 128
+    n_files_at_once: 100
+    feature_dict:
+      part_pt: {multiply_by: 1, subtract_by: 1.8, func: "np.log", inv_func: "np.exp"}
+      part_etarel: {multiply_by: 3, larger_than: -0.8, smaller_than: 0.8}
+      part_phirel: {multiply_by: 3, larger_than: -0.8, smaller_than: 0.8}
+
+trainer:
+  max_steps: 1000000
+  gradient_clip_val: 5
+  log_every_n_steps: 10
+  limit_train_batches: 2000 # 1900 with batch size 512, to have 1M samples per epoch
+  limit_val_batches: 200
+  precision: "16-mixed"
+  # num_sanity_val_steps: 10
+
+# setting load_weights_from will load the weights from the given checkpoint, but start training from scratch
+# load_weights_from: <path_to_checkpoint>
+
+model:
+  # --- model architecture configuration ---
+  model_kwargs_loaded: null
+  model_kwargs:
+    n_tokens: null  # has to be null when not using tokens input
+    input_dim: 3
+    n_out_nodes: 2
+  # --- optimizer configuration ---
+  optimizer:
+    _target_: torch.optim.AdamW
+    _partial_: true
+    lr: 1e-3
+    weight_decay: 1e-2
+  # --- learning rate scheduler ---
+  scheduler:
+    _target_: gabbro.schedulers.lr_scheduler.OneCycleCooldown
+    _partial_: true
+    warmup: 4  # epochs until max_lr is reached
+    cooldown: 20 # epochs to decrease to initial_lr after max_lr is reached
+    cooldown_final: 50 # epochs to decrease to final_lr after max_lr is reached
+    max_lr: 5e-3
+    initial_lr: 2e-3
+    final_lr: 1e-3  # final_lr is used after the second cooldown
+
+
+task_name: "tokenization"
+
+logger:
+  wandb:
+    project: ${project_name}
+    tags: ${tags}
+    # group: ${project_name}
+    name: ${task_name}
+  comet:
+    experiment_name: null
+    project_name: ${project_name}

@@ -1,0 +1,7 @@
+# Generate data, calculate plots and metrics and log them to the logger
+generative_callback:
+  _target_: gabbro.callbacks.generative_callback.GenEvalCallback
+  n_val_gen_jets: 2000
+  every_n_epochs: 1
+  starting_at_epoch: 1
+  batch_size_for_generation: 512

@@ -1,0 +1,4 @@
+examples/notebooks/*.ipynb filter= diff=
+
+*.zpln filter=nbstripout
+*.ipynb diff=ipynb

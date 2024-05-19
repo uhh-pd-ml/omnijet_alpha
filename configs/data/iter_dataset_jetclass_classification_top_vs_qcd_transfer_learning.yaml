@@ -1,0 +1,41 @@
+_target_: gabbro.data.iterable_dataset_jetclass.IterableDatamodule
+
+
+defaults:
+  - defaults.yaml
+
+data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-19_20-54-01_nonfissile_defect_a56f_TTBar_ZJetsToNuNu_test_split_to_trainvaltest
+
+batch_size: 512
+
+dataset_kwargs_common:
+  pad_length: 128
+  n_files_at_once: 10
+  labels_to_load:
+    - label_QCD
+    - label_Tbqq
+
+dataset_kwargs_train:
+  max_n_files_per_type: null
+  n_jets_per_file: null
+  files_dict:
+    QCD:
+      - ${data.data_dir}/train_2M/ZJetsToNuNu_*
+    Tbqq:
+      - ${data.data_dir}/train_2M/TTBar_*
+
+dataset_kwargs_val:
+  max_n_files_per_type: 1
+  files_dict:
+    QCD:
+      - ${data.data_dir}/val_1M/ZJetsToNuNu_*
+    Tbqq:
+      - ${data.data_dir}/val_1M/TTBar_*
+
+dataset_kwargs_test:
+  max_n_files_per_type: 1
+  files_dict:
+    QCD:
+      - ${data.data_dir}/test_1M/ZJetsToNuNu_*
+    Tbqq:
+      - ${data.data_dir}/test_1M/TTBar_*

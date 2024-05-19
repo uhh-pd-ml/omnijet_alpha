@@ -1,0 +1,4 @@
+# Generate data, calculate plots and metrics and log them to the logger
+tokenization_callback:
+  _target_: gabbro.callbacks.classifier_callback.ClassifierEvaluationCallback
+  every_n_epochs: 1 # evaluate every n epochs

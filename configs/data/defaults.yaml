@@ -1,0 +1,20 @@
+dataset_kwargs_train:
+  logger_name: IterDataset-Train
+  shuffle_files: true
+  shuffle_data: true
+  seed: 42
+
+dataset_kwargs_val:
+  logger_name: IterDataset-Validation
+  shuffle_files: false
+  shuffle_data: true
+  seed_shuffle_data: 42
+
+dataset_kwargs_test:
+  logger_name: IterDataset-Test
+  shuffle_files: false
+  shuffle_data: true
+  seed_shuffle_data: 42
+
+batch_size: 128
+data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_history_v1/

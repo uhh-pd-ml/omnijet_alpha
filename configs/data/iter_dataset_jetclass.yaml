@@ -1,0 +1,43 @@
+_target_: gabbro.data.iterable_dataset_jetclass.IterableDatamodule
+
+# ---------
+
+defaults:
+  - defaults.yaml
+
+# ---------
+#
+data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass/JetClass/
+
+dataset_kwargs_common:
+  feature_dict: null
+    # part_pt: {multiply_by: 0.3, subtract_by: 2.7, func: np.log, inv_func: np.exp}
+    # part_eta: {multiply_by: 4}
+    # part_phi: {multiply_by: 4}
+  n_files_at_once: 2
+  labels_to_load:
+    - label_QCD
+    - label_Hbb
+    - label_Hcc
+    - label_Hgg
+    - label_H4q
+    - label_Hqql
+    - label_Zqq
+    - label_Wqq
+    - label_Tbqq
+    - label_Tbl
+
+dataset_kwargs_train:
+  files_dict:
+    QCD:
+      - ${data.data_dir}/train_100M/ZJetsToNuNu_*
+
+dataset_kwargs_val:
+  files_dict:
+    QCD:
+      - ${data.data_dir}/val_5M/ZJetsToNuNu_*
+
+dataset_kwargs_test:
+  files_dict:
+    QCD:
+      - ${data.data_dir}/test_20M/ZJetsToNuNu_*

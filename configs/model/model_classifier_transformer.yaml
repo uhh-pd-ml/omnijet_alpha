@@ -1,0 +1,28 @@
+_target_: gabbro.models.classifiers.ClassifierPL
+
+model_class_name: "ClassifierNormformer"
+
+model_kwargs:
+  n_tokens: null
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 0.001  # ParT paper uses RAdam optimizer with initial lr of 0.001
+  weight_decay: 0
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.ConstantLR
+  _partial_: true
+
+# using the method listed in the paper https://arxiv.org/abs/1902.08570, but with other parameters
+# scheduler:
+#   _target_: src.schedulers.lr_scheduler.OneCycleCooldown
+#   _partial_: true
+#   warmup: 4
+#   cooldown: 10
+#   cooldown_final: 10
+#   max_lr: 0.0002
+#   initial_lr: 0.00003
+#   final_lr: 0.00002
+#   max_iters: 200

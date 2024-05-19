@@ -1,0 +1,97 @@
+# @package _global_
+
+# to execute this experiment run:
+# python gabbro/train.py experiment=example_experiment_tokenization
+
+defaults:
+  - override /data: data_tokenization.yaml
+  - override /model: model_vqvae_transformer.yaml
+  - override /callbacks: tokenization_callbacks.yaml
+  - override /trainer: gpu.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+project_name: "omnijet-example-tokenization"
+tags: ["vqvae_tokenization"]
+
+run_note: ""  # "here you can add a note to the run which will be displayed in the logging service"
+
+seed: 1603
+load_weights_from: false
+
+data:
+  # the `data_dir` is the path to the dataset (for JetClass this is where the train_100M, val_5M, ... folders are)
+  data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass/JetClass/
+  batch_size: 512  # NOTE: adapt the limit_train_batches accordingly
+  dataset_kwargs_train:
+    max_n_files_per_type: 1  # for this example we only load one file per type
+  dataset_kwargs_common:
+    n_jets_per_file: 1000  # for this example we only load 1000 jets per file
+    n_files_at_once: 10  # load 10 files at once (which are all in this case)
+    load_only_once: true  # load the files only once and keep them in memory
+    pad_length: 128  # pad the jets to a length of 128 particles
+    feature_dict:
+      part_pt: {multiply_by: 1, subtract_by: 1.8, func: "np.log", inv_func: "np.exp"}
+      part_etarel: {multiply_by: 3, larger_than: -0.8, smaller_than: 0.8}
+      part_phirel: {multiply_by: 3, larger_than: -0.8, smaller_than: 0.8}
+
+trainer:
+  max_epochs: 10
+  gradient_clip_val: 5
+  log_every_n_steps: 10
+  # limit_train_batches allows to define epochs in terms of number of batches
+  # 1.0 means all batches, 0.1 means 10% of all batches and e.g. 2700 means 2700
+  # batches (to define the "epoch", which we might want to be smaller than the
+  # whole dataset to get faster feedback on the training process)
+  limit_train_batches: 1.0
+  limit_val_batches: 1.0
+
+model:
+  model_kwargs_loaded: null
+  # --- optimizer configuration ---
+  optimizer:
+    _target_: torch.optim.AdamW
+    _partial_: true
+    lr: 1e-3
+    weight_decay: 1e-2
+  # --- learning rate scheduler ---
+  scheduler:
+    _target_: gabbro.schedulers.lr_scheduler.OneCycleCooldown
+    _partial_: true
+    warmup: 4  # epochs until max_lr is reached
+    cooldown: 20 # epochs to decrease to initial_lr after max_lr is reached
+    cooldown_final: 50 # epochs to decrease to final_lr after max_lr is reached
+    max_lr: 1e-3
+    initial_lr: 5e-4
+    final_lr: 3e-4  # final_lr is used after the second cooldown
+
+  # --- model architecture configuration ---
+  model_type: VQVAENormFormer
+  model_kwargs:
+    input_dim: 3
+    hidden_dim: 128
+    latent_dim: 4
+    num_blocks: 4
+    num_heads: 8
+    alpha: 10
+    vq_kwargs:
+      num_codes: 512
+      beta: 0.9
+      kmeans_init: true
+      norm: null
+      cb_norm: null
+      affine_lr: 2
+      sync_nu: 1
+      replace_freq: 100
+
+task_name: "tokenization"
+
+logger:
+  wandb:
+    project: ${project_name}
+    tags: ${tags}
+    name: ${task_name}
+  comet:
+    experiment_name: null
+    project_name: ${project_name}

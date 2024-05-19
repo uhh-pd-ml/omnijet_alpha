@@ -1,0 +1,34 @@
+defaults:
+  - model_checkpoint.yaml
+  - model_checkpoint_best.yaml
+  - model_summary.yaml
+  - lr_monitor.yaml
+  - generative_callback.yaml
+  - early_stopping.yaml
+  - _self_
+
+model_checkpoint:
+  dirpath: ${paths.output_dir}/checkpoints
+  filename: "epoch_{epoch:03d}_step_{step}_loss_{val_loss:.5f}"
+  monitor: "val_loss"
+  mode: "min"
+  every_n_epochs: 1
+  save_last: True
+  auto_insert_metric_name: False
+
+model_checkpoint_best:
+  dirpath: ${paths.output_dir}/checkpoints
+  filename: "best"
+  monitor: "val_loss"
+  mode: "min"
+  every_n_epochs: 1
+  save_last: false
+
+early_stopping:
+ monitor: "val_loss"
+ patience: 10
+ mode: "min"
+ verbose: true
+
+model_summary:
+  max_depth: -1

@@ -1,0 +1,64 @@
+name: Docker build
+
+on:
+  pull_request:
+    branches:
+      - '*'
+    paths:
+      - 'docker/**'
+  push:
+    branches:
+      - 'main'
+    tags:
+      - '*'
+    paths:
+      - 'docker/**'
+  workflow_dispatch:
+
+env:
+  CONTAINER_REGISTRY: ${{ vars.DOCKERHUB_USERNAME }}
+  IMAGE_NAME: ${{ vars.DOCKERHUB_REPO}}
+
+jobs:
+  build_latest:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build image
+        run: docker build -f docker/Dockerfile --tag ${CONTAINER_REGISTRY}/${IMAGE_NAME}:latest docker
+
+      # Login and push this image if this is on the main branch
+
+      - name: Login to Dockerhub container registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker login -u ${{ vars.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker push ${CONTAINER_REGISTRY}/${IMAGE_NAME}:latest
+
+  build_release:
+    # Build an extra image for tagged commits
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.ref, 'refs/tags')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build image
+        run: docker build -f docker/Dockerfile --tag ${CONTAINER_REGISTRY}/${IMAGE_NAME}:${{  github.ref_name  }} docker
+
+      - name: Login to Dockerhub container registry
+        run: docker login -u ${{ vars.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push image
+        run: docker push ${CONTAINER_REGISTRY}/${IMAGE_NAME}:${{  github.ref_name  }}

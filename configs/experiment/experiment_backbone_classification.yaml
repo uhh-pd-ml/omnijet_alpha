@@ -1,0 +1,105 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=experiment_tokenization_transformer
+
+defaults:
+  - override /data: iter_dataset_jetclass_classification_top_vs_qcd_transfer_learning.yaml
+  - override /model: backbone_classification.yaml
+  - override /callbacks: classifier_callbacks.yaml
+  # - override /trainer: ddp.yaml
+  - override /trainer: gpu.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+# add here checkpoint to continue training
+# ckpt_path: <path_to_checkpoint>
+
+project_name: "omnijet-classification"
+tags: ["classification"]
+
+run_note: ""
+
+seed: 1603
+load_weights_from: false
+load_weights_strict: false
+
+
+data:
+  batch_size: 512  # NOTE: adapt the limit_train_batches accordingly
+  data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-19_20-54-01_nonfissile_defect_a56f_TTBar_ZJetsToNuNu
+  dataset_kwargs_train:
+    max_n_files_per_type: 5
+  dataset_kwargs_val:
+    shuffle_only_once: true
+  dataset_kwargs_common:
+    random_seed_for_per_file_shuffling: ${seed}
+    load_only_once: true
+    pad_length: 128
+    n_files_at_once: 100
+    feature_dict:
+      part_token_id: {}
+    token_id_cfg:
+      remove_start_token: false
+      remove_end_token: false
+      shift_tokens_minus_one: false
+
+trainer:
+  max_steps: 1000000
+  gradient_clip_val: 5
+  log_every_n_steps: 10
+  limit_train_batches: 1.0 # 1900 with batch size 512, to have 1M samples per epoch
+  limit_val_batches: 20
+  # precision: "16-mixed"
+  # num_sanity_val_steps: 10
+
+# setting load_weights_from will load the weights from the given checkpoint, but start training from scratch
+# load_weights_from: <path_to_checkpoint>
+
+model:
+  # --- model architecture configuration ---
+  class_head_type: "class_attention"
+  model_kwargs_loaded: null
+  token_dir: ${data.data_dir}
+  model_kwargs:
+    keep_backbone_fixed: false
+    # ---
+    n_out_nodes: 2
+    # backbone_weights_path: null
+    backbone_weights_path: /home/birkjosc/repositories/omnijet_alpha/checkpoints/generative_8192_tokens/OmniJet_generative_model_UnintentionalPinscher_59.ckpt
+    # ---
+    embedding_dim: 256
+    attention_dropout: 0.0
+    vocab_size: 8194
+    max_sequence_len: 128
+    n_GPT_blocks: 3
+    n_heads: 8
+    verbosity: false
+  # --- optimizer configuration ---
+  # optimizer:
+  #   _target_: torch.optim.Adam
+  #   _partial_: true
+  #   lr: 1e-3
+  optimizer:
+    _target_: torch.optim.AdamW
+    _partial_: true
+    lr: 1e-4
+    weight_decay: 1e-2
+  # --- learning rate scheduler ---
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ConstantLR
+    _partial_: true
+    total_iters: 1
+
+task_name: "omnijet_backbone"
+
+logger:
+  wandb:
+    project: ${project_name}
+    tags: ${tags}
+    # group: ${project_name}
+    name: ${task_name}
+  comet:
+    experiment_name: null
+    project_name: ${project_name}

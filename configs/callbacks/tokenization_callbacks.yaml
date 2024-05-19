@@ -1,0 +1,23 @@
+defaults:
+  - model_checkpoint.yaml
+  - model_summary.yaml
+  - lr_monitor.yaml
+  - tokenization_callback.yaml
+  - _self_
+
+model_checkpoint:
+  dirpath: ${paths.output_dir}/checkpoints
+  filename: "epoch_{epoch:03d}_loss_{val_loss:.5f}"
+  monitor: "val_loss"
+  mode: "min"
+  every_n_epochs: 1
+  save_last: True
+  auto_insert_metric_name: False
+
+#early_stopping:
+#  monitor: "val_loss"
+#  patience: 100
+#  mode: "min"
+
+model_summary:
+  max_depth: -1

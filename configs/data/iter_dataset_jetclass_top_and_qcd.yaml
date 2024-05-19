@@ -1,0 +1,97 @@
+_target_: gabbro.data.iterable_dataset_jetclass.IterableDatamodule
+
+
+defaults:
+  - defaults.yaml
+
+data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass/JetClass/
+
+batch_size: 512
+
+dataset_kwargs_common:
+  pad_length: 128
+  n_files_at_once: 10
+  labels_to_load:
+    - label_QCD
+    # - label_Hbb
+    # - label_Hcc
+    # - label_Hgg
+    # - label_H4q
+    # - label_Hqql
+    # - label_Zqq
+    # - label_Wqq
+    - label_Tbqq
+    # - label_Tbl
+
+dataset_kwargs_train:
+  max_n_files_per_type: null
+  n_jets_per_file: null
+  files_dict:
+    QCD:
+      - ${data.data_dir}/train_100M/ZJetsToNuNu_*
+    # Hbb:
+    #   - ${data.data_dir}/train_100M/HToBB_*
+    # Hcc:
+    #   - ${data.data_dir}/train_100M/HToCC_*
+    # Hgg:
+    #   - ${data.data_dir}/train_100M/HToGG_*
+    # H4q:
+    #   - ${data.data_dir}/train_100M/HToWW4Q_*
+    # Hqql:
+    #   - ${data.data_dir}/train_100M/HToWW2Q1L_*
+    # Zqq:
+    #   - ${data.data_dir}/train_100M/ZToQQ_*
+    # Wqq:
+    #   - ${data.data_dir}/train_100M/WToQQ_*
+    Tbqq:
+      - ${data.data_dir}/train_100M/TTBar_*
+    # Tbl:
+    #   - ${data.data_dir}/train_100M/TTBarLep_*
+
+dataset_kwargs_val:
+  max_n_files_per_type: 1
+  files_dict:
+    QCD:
+      - ${data.data_dir}/val_5M/ZJetsToNuNu_*
+    # Hbb:
+    #   - ${data.data_dir}/val_5M/HToBB_*
+    # Hcc:
+    #   - ${data.data_dir}/val_5M/HToCC_*
+    # Hgg:
+    #   - ${data.data_dir}/val_5M/HToGG_*
+    # H4q:
+    #   - ${data.data_dir}/val_5M/HToWW4Q_*
+    # Hqql:
+    #   - ${data.data_dir}/val_5M/HToWW2Q1L_*
+    # Zqq:
+    #   - ${data.data_dir}/val_5M/ZToQQ_*
+    # Wqq:
+    #   - ${data.data_dir}/val_5M/WToQQ_*
+    Tbqq:
+      - ${data.data_dir}/val_5M/TTBar_*
+    # Tbl:
+    #   - ${data.data_dir}/val_5M/TTBarLep_*
+
+dataset_kwargs_test:
+  max_n_files_per_type: 1
+  files_dict:
+    QCD:
+      - ${data.data_dir}/test_20M/ZJetsToNuNu_*
+    # Hbb:
+    #   - ${data.data_dir}/test_20M/HToBB_*
+    # Hcc:
+    #   - ${data.data_dir}/test_20M/HToCC_*
+    # Hgg:
+    #   - ${data.data_dir}/test_20M/HToGG_*
+    # H4q:
+    #   - ${data.data_dir}/test_20M/HToWW4Q_*
+    # Hqql:
+    #   - ${data.data_dir}/test_20M/HToWW2Q1L_*
+    # Zqq:
+    #   - ${data.data_dir}/test_20M/ZToQQ_*
+    # Wqq:
+    #   - ${data.data_dir}/test_20M/WToQQ_*
+    Tbqq:
+      - ${data.data_dir}/test_20M/TTBar_*
+    # Tbl:
+    #   - ${data.data_dir}/test_20M/TTBarLep_*

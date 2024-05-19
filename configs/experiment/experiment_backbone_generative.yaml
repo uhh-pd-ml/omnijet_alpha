@@ -1,0 +1,125 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=experiment_tokenization_transformer
+
+defaults:
+  # - override /data: iter_dataset_jetclass_classification_top_vs_qcd
+  - override /data: iter_dataset_jetclass_classification_top
+  - override /model: backbone_generative.yaml
+  - override /callbacks: callbacks_for_generative_training.yaml
+  # - override /trainer: ddp.yaml
+  - override /trainer: gpu.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+# add here checkpoint to continue training
+# ckpt_path: <path_to_checkpoint>
+
+project_name: "omnijet-backbone"
+# project_name: "tokenization-classification-dev"  # for debugging
+tags: ["generative"]
+
+run_note: ""
+
+seed: 1603
+load_weights_from: false
+load_weights_strict: false
+
+
+data:
+  batch_size: 256  # NOTE: adapt the limit_train_batches accordingly
+  data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-19_20-54-01_nonfissile_defect_a56f_TTBar_ZJetsToNuNu
+  dataset_kwargs_train:
+    max_n_files_per_type: 100
+  dataset_kwargs_val:
+    shuffle_only_once: false
+  dataset_kwargs_common:
+    load_only_once: true
+    pad_length: 128
+    n_files_at_once: 200
+    feature_dict:
+      # part_token_id: {}
+      part_token_id_without_last: {}  # <-- this will be the input for the gen. model
+      part_token_id_without_first: {} # <-- this will be the target for the gen. model
+    token_id_cfg:
+      remove_start_token: false
+      remove_end_token: false
+      shift_tokens_minus_one: false
+
+callbacks:
+  generative_callback:
+    n_val_gen_jets: 10_000
+    starting_at_epoch: 0
+    batch_size_for_generation: 256
+  early_stopping:
+    patience: 20 # number of checks with no improvement after which training will be stopped
+trainer:
+  max_steps: 1000000
+  gradient_clip_val: 5
+  log_every_n_steps: 10
+  limit_train_batches: 1000 # 1900 with batch size 512, to have 1M samples per epoch
+  limit_val_batches: 100
+  # precision: "bf16-true"
+  # num_sanity_val_steps: 10
+
+# setting load_weights_from will load the weights from the given checkpoint, but start training from scratch
+# load_weights_from: <path_to_checkpoint>
+
+model:
+  # --- model architecture configuration ---
+  # model_class_name: "BackboneWithClasshead"
+  # model_kwargs_loaded: null
+  token_dir: ${data.data_dir}
+  model_kwargs:
+    # keep_backbone_fixed: false
+    # ---
+    return_embeddings: true  # meaning that the new head structure is used instead of the old one
+    # n_out_nodes: 2
+    # backbone_weights_path: null
+    # backbone_weights_path: /beegfs/desy/user/hallinan/output/SimplestJetGPT/RuthlessCerberus80198/models/QCD_and_top/model_RuthlessCerberus80198_epoch_11.pt
+    # backbone_weights_path: /beegfs/desy/user/hallinan/output/SimplestJetGPT/_OmniJet_alpha/GenerativeGarmur_20240304/generate/models/QCD_and_top/model_GenerativeGarmur_20240304_epoch_15_generate.pt
+    backbone_weights_path: /beegfs/desy/user/hallinan/output/SimplestJetGPT/AmbitiousGriffin89771/models/top/model_AmbitiousGriffin89771_epoch_13.pt
+
+    # ---
+    embedding_dim: 256
+    attention_dropout: 0.0
+    vocab_size: 8194
+    max_sequence_len: 128
+    n_GPT_blocks: 3
+    n_heads: 8
+    verbosity: false
+    use_parallel_heads: true
+  # --- optimizer configuration ---
+  optimizer:
+    _target_: torch.optim.AdamW
+    _partial_: true
+    lr: 1e-3
+    weight_decay: 1e-2
+  # optimizer:
+  #   _target_: torch.optim.AdamW
+  #   _partial_: true
+  #   lr: 1e-3
+  # --- learning rate scheduler ---
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ConstantLR
+    _partial_: true
+    total_iters: 1
+  # ---
+  #   _target_: gabbro.schedulers.lr_scheduler.WarmupToConstant
+  #   _partial_: true
+  #   # lr: 1e-5
+  #   num_steps: 5
+
+task_name: "omnijet_backbone"
+
+logger:
+  wandb:
+    project: ${project_name}
+    tags: ${tags}
+    # group: ${project_name}
+    name: ${task_name}
+  comet:
+    experiment_name: null
+    project_name: ${project_name}

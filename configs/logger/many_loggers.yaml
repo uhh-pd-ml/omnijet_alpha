@@ -1,0 +1,6 @@
+# train with many loggers at once
+
+defaults:
+  - comet.yaml
+  - csv.yaml
+  - wandb.yaml

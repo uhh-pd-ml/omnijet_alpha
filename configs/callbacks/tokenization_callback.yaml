@@ -1,0 +1,3 @@
+# Generate data, calculate plots and metrics and log them to the logger
+tokenization_callback:
+  _target_: gabbro.callbacks.tokenization_callback.TokenizationEvalCallback

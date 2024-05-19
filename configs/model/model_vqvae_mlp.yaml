@@ -1,0 +1,42 @@
+_target_: gabbro.models.vqvae.VQVAELightning
+
+model_type: "MLP"
+
+model_kwargs:
+  input_dim: 3
+  encoder_layers: [128, 128]
+  decoder_layers: [128, 128]
+  latent_dim: 3
+  alpha: 5
+  vq_kwargs:
+    num_codes: 10000
+    beta: 0.9
+    kmeans_init: true
+    norm: null
+    cb_norm: null
+    affine_lr: 0.0
+    sync_nu: 2
+    replace_freq: 20
+    dim: -1
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 0.001
+  # weight_decay: 0.05
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.ConstantLR
+  _partial_: true
+
+# using the method listed in the paper https://arxiv.org/abs/1902.08570, but with other parameters
+# scheduler:
+#   _target_: src.schedulers.lr_scheduler.OneCycleCooldown
+#   _partial_: true
+#   warmup: 4
+#   cooldown: 10
+#   cooldown_final: 10
+#   max_lr: 0.0002
+#   initial_lr: 0.00003
+#   final_lr: 0.00002
+#   max_iters: 200
