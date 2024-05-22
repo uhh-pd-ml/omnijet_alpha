@@ -90,7 +90,6 @@ model:
     n_GPT_blocks: 3
     n_heads: 8
     verbosity: false
-    use_parallel_heads: true
   # --- optimizer configuration ---
   optimizer:
     _target_: torch.optim.AdamW

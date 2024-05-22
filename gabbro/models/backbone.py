@@ -16,7 +16,6 @@ from tqdm import tqdm
 
 from gabbro.metrics.utils import calc_accuracy
 from gabbro.models.gpt_model import BackboneModel
-from gabbro.models.gpt_model_sequential import FullModel  # noqa: E402
 
 vector.register_awkward()
 
@@ -54,10 +53,7 @@ class BackboneNextTokenPredictionLightning(L.LightningModule):
         self.save_hyperparameters(logger=False)
 
         # initialize the backbone
-        if model_kwargs.get("use_parallel_heads", False):
-            self.module = BackboneModel(**model_kwargs)
-        else:
-            self.module = FullModel(**model_kwargs)
+        self.module = BackboneModel(**model_kwargs)
 
         # initialize the model head
         self.head = NextTokenPredictionHead(
