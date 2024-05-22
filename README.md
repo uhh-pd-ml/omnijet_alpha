@@ -47,6 +47,23 @@ repository [jet-universe/particle_transformer](https://github.com/jet-universe/p
 The recommended (and by us tested) way of running the code is to use the
 provided docker image at
 [`jobirk/omnijet` on DockerHub](https://hub.docker.com/repository/docker/jobirk/omnijet/general).
+The requirements listed in `docker/requirements.txt` are installed in the `conda` environment
+of the base image, so you have to make sure that the `conda` environment is activated
+when running the code.
+
+Thus, an interactive session can be started by running the following command:
+
+```shell
+# on a machine with Singularity
+singularity shell docker://jobirk/omnijet:latest  # start a shell in the container
+source /opt/conda/bin/activate  # activate the conda environment in the container
+#
+# on a machine with Docker
+docker run -it --rm jobirk/omnijet:latest bash  # start a shell in the container
+source /opt/conda/bin/activate  # activate the conda environment in the container
+```
+
+where `<path to the project>` is the path to the root of the project on your local machine.
 
 Alternatively, you can install the requirements from the `docker/requirements.txt` file, but
 you'll have to add `pytorch` to the list of requirements, since this is not
@@ -96,7 +113,7 @@ python scripts/create_tokenized_dataset.py --ckpt_path=<path to the checkpoint> 
 Make sure to adjust the `--n_files_*` arguments to your needs, and set the env variable
 `JETCLASS_DIR` and `JETCLASS_DIR_TOKENIZED` in the `.env` file.
 
-Afterwards, the tokenized dataset will be saved in if a subdirectory of the
+Afterwards, the tokenized dataset will be saved in a subdirectory of the
 `JETCLASS_DIR_TOKENIZED` directory and can be used to train the backbone model.
 
 ### Generative training
