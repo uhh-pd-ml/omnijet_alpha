@@ -38,13 +38,6 @@ repos:
       - id: pyupgrade
         args: [--py38-plus]
 
-  # python docstring formatting
-  - repo: https://github.com/myint/docformatter
-    rev: v1.4
-    hooks:
-      - id: docformatter
-        args: [--in-place, --wrap-summaries=99, --wrap-descriptions=99]
-
   # python check (PEP8), programming errors and code complexity
   - repo: https://github.com/PyCQA/flake8
     rev: 4.0.1
@@ -88,19 +81,6 @@ repos:
         args: [ --fix ]
       # Run the formatter.
       - id: ruff-format
-
-  # md formatting
-  - repo: https://github.com/executablebooks/mdformat
-    rev: 0.7.14
-    hooks:
-      - id: mdformat
-        args: ["--number"]
-        additional_dependencies:
-          - mdformat-gfm
-          - mdformat-tables
-          - mdformat_frontmatter
-          # - mdformat-toc
-          # - mdformat-black
 
   # word spelling linter
   - repo: https://github.com/codespell-project/codespell

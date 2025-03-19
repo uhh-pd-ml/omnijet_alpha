@@ -15,6 +15,10 @@ This repository contains the code for the results presented in the paper
 '[OmniJet-α: The first cross-task foundation model for particle physics
 ](https://arxiv.org/abs/2403.05618)'.
 
+The code was also used in:
+
+[![arXiv](https://img.shields.io/badge/arXiv-2412.10504-b31b1b.svg)](https://arxiv.org/abs/2412.10504)
+
 **Abstract**:
 
 > Foundation models are multi-dataset and multi-task machine learning methods that once pre-trained can be fine-tuned for a large variety of downstream applications. The successful development of such general-purpose models for physics data would be a major breakthrough as they could improve the achievable physics performance while at the same time drastically reduce the required amount of training time and data.
