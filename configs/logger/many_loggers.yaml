@@ -3,4 +3,4 @@
 defaults:
   - comet.yaml
   - csv.yaml
-  - wandb.yaml
+  # - wandb.yaml
