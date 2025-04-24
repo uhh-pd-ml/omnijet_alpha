@@ -160,11 +160,15 @@ If you use this code in your research, please cite our paper:
 ```bibtex
 @article{Birk:2024knn,
     author = "Birk, Joschka and Hallin, Anna and Kasieczka, Gregor",
-    title = "{OmniJet-$\alpha$: The first cross-task foundation model for particle physics}",
+    title = "{OmniJet-\ensuremath{\alpha}: the first cross-task foundation model for particle physics}",
     eprint = "2403.05618",
     archivePrefix = "arXiv",
     primaryClass = "hep-ph",
-    month = "3",
+    doi = "10.1088/2632-2153/ad66ad",
+    journal = "Mach. Learn. Sci. Tech.",
+    volume = "5",
+    number = "3",
+    pages = "035031",
     year = "2024"
 }
 ```
