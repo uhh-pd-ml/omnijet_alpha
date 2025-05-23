@@ -18,6 +18,7 @@ This repository contains the code for the results presented in the paper
 The code was also used in:
 
 [![arXiv](https://img.shields.io/badge/arXiv-2412.10504-b31b1b.svg)](https://arxiv.org/abs/2412.10504)
+[![arXiv](https://img.shields.io/badge/arXiv-2503.19165-b31b1b.svg)](https://arxiv.org/abs/2503.19165)
 
 **Abstract**:
 
