@@ -56,12 +56,13 @@ class MultiHeadAttention(nn.Module):
 
         if padding_mask is not None:
             padding_mask = padding_mask.unsqueeze(-1).expand(-1, -1, T)  # (B, T) -> (B, T, T)
+            padding_mask = padding_mask.transpose(1, 2)
             # (B, T, T) -> (B, n_heads, T, T)
             padding_mask = padding_mask.unsqueeze(1).expand(B, self.n_heads, T, T)
             # Need to set a finite number for the masking, instead of -inf,
             # otherwise softmax results in nans.
             # (B, n_heads, T, T)
-            attn_scores = attn_scores.masked_fill(padding_mask == 0, float("-1e9"))
+            attn_scores = attn_scores.masked_fill(padding_mask == 0, float("-inf"))
 
         # Apply the causal mask, cropped to the sequence length
         # (B, n_heads, T, T)
