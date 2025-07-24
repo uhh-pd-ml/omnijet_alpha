@@ -4,11 +4,11 @@
 # python train.py experiment=experiment_tokenization_transformer
 
 defaults:
-  - override /data: iter_dataset_jetclass_classification_top_vs_qcd_transfer_learning.yaml
-  - override /model: backbone_classification.yaml
-  - override /callbacks: classifier_callbacks.yaml
-  # - override /trainer: ddp.yaml
-  - override /trainer: gpu.yaml
+- override /data: iter_dataset_jetclass_classification_top_vs_qcd_transfer_learning.yaml
+- override /model: backbone_classification.yaml
+- override /callbacks: classifier_callbacks.yaml
+# - override /trainer: ddp.yaml
+- override /trainer: gpu.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
@@ -17,7 +17,7 @@ defaults:
 # ckpt_path: <path_to_checkpoint>
 
 project_name: "omnijet-classification"
-tags: ["classification"]
+tags: [ "classification" ]
 
 run_note: ""
 
@@ -25,9 +25,8 @@ seed: 1603
 load_weights_from: false
 load_weights_strict: false
 
-
 data:
-  batch_size: 512  # NOTE: adapt the limit_train_batches accordingly
+  batch_size: 512 # NOTE: adapt the limit_train_batches accordingly
   data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-19_20-54-01_nonfissile_defect_a56f_TTBar_ZJetsToNuNu
   dataset_kwargs_train:
     max_n_files_per_type: 5
@@ -54,12 +53,12 @@ trainer:
   # precision: "16-mixed"
   # num_sanity_val_steps: 10
 
-# setting load_weights_from will load the weights from the given checkpoint, but start training from scratch
-# load_weights_from: <path_to_checkpoint>
+  # setting load_weights_from will load the weights from the given checkpoint, but start training from scratch
+  # load_weights_from: <path_to_checkpoint>
 
 model:
   # --- model architecture configuration ---
-  class_head_type: "class_attention"
+  class_head_type: "summation"
   model_kwargs_loaded: null
   token_dir: ${data.data_dir}
   model_kwargs:

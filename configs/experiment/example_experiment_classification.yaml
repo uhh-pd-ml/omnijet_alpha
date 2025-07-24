@@ -1,16 +1,16 @@
 # @package _global_
 
 defaults:
-  - override /data: iter_dataset_jetclass_classification_top_vs_qcd_transfer_learning.yaml
-  - override /model: backbone_classification.yaml
-  - override /callbacks: classifier_callbacks.yaml
-  - override /trainer: gpu.yaml
+- override /data: iter_dataset_jetclass_classification_top_vs_qcd_transfer_learning.yaml
+- override /model: backbone_classification.yaml
+- override /callbacks: classifier_callbacks.yaml
+- override /trainer: gpu.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
 project_name: "omnijet-example-classification"
-tags: ["classification"]
+tags: [ "classification" ]
 
 run_note: ""
 
@@ -19,7 +19,7 @@ load_weights_from: false
 load_weights_strict: false
 
 data:
-  batch_size: 512  # NOTE: adapt the limit_train_batches accordingly
+  batch_size: 512 # NOTE: adapt the limit_train_batches accordingly
   # Note: adapt this to the path where your tokenized dataset is stored
   data_dir: /data/dust/user/birkjosc/beegfs/datasets/jetclass_tokenized/2024-02-19_20-54-01_nonfissile_defect_a56f_TTBar_ZJetsToNuNu_test_split_to_trainvaltest
   dataset_kwargs_train:
@@ -50,7 +50,7 @@ trainer:
 
 model:
   # --- model architecture configuration ---
-  class_head_type: "class_attention"
+  class_head_type: "summation"
   model_kwargs_loaded: null
   token_dir: ${data.data_dir}
   model_kwargs:
@@ -63,7 +63,7 @@ model:
     # ---
     embedding_dim: 256
     attention_dropout: 0.0
-    vocab_size: 8194  # this is the codebook size (8192) + 2 tokens (start and end token)
+    vocab_size: 8194 # this is the codebook size (8192) + 2 tokens (start and end token)
     max_sequence_len: 128
     n_GPT_blocks: 3
     n_heads: 8
