@@ -6,7 +6,6 @@ from typing import Any, Dict, Tuple
 
 import awkward as ak
 import lightning as L
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
@@ -595,15 +594,15 @@ class BackboneClassificationLightning(L.LightningModule):
         print(f"Validation epoch {self.trainer.current_epoch} finished.", end="\r")
 
     def on_test_start(self):
-        self.test_loop_preds_list = []
-        self.test_loop_labels_list = []
+        self.test_preds_list = []
+        self.test_labels_list = []
 
     def test_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int) -> None:
         """Perform a single test step on a batch of data from the test set."""
         loss, logits, targets = self.model_step(batch)
         preds = torch.softmax(logits, dim=1)
-        self.test_loop_preds_list.append(preds.float().detach().cpu().numpy())
-        self.test_loop_labels_list.append(targets.float().detach().cpu().numpy())
+        self.test_preds_list.append(preds.float().detach().cpu().numpy())
+        self.test_labels_list.append(targets.float().detach().cpu().numpy())
 
         acc = calc_accuracy(
             preds=preds.float().detach().cpu().numpy(),

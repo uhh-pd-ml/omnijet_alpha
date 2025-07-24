@@ -53,8 +53,8 @@ class ClassifierEvaluationCallback(L.Callback):
         self.logger.info(f"Saving test predictions as parquet file to: {save_filename}")
         results_akarr = ak.Array(
             {
-                "test_preds": pl_module.test_preds,
-                "test_labels": pl_module.test_labels,
+                "test_preds": np.concatenate(pl_module.test_preds_list),
+                "test_labels": np.concatenate(pl_module.test_labels_list),
             }
         )
         ak.to_parquet(results_akarr, save_filename)
@@ -65,6 +65,7 @@ class ClassifierEvaluationCallback(L.Callback):
         # save the results metrics dict as yaml
         save_filename = save_dir + "/test_metrics.yaml"
         self.logger.info(f"Saving test metrics as yaml file to: {save_filename}")
+        self.logger.info(f"Results metrics dict: {results_metrics_dict}")
         OmegaConf.save(results_metrics_dict, save_filename)
 
         return results_metrics_dict
