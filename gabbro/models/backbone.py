@@ -85,6 +85,8 @@ class BackboneNextTokenPredictionLightning(L.LightningModule):
         print(f"Loading backbone weights from {ckpt_path}")
         ckpt = torch.load(ckpt_path)
         state_dict = ckpt["state_dict"] if "state_dict" in ckpt else ckpt
+        # in this case, loading backbone weights (from a generative model) would
+        # result in loading all weights
         self.load_state_dict(state_dict, strict=False)
 
     def forward(self, x, mask=None):
@@ -499,6 +501,8 @@ class BackboneClassificationLightning(L.LightningModule):
         print(f"Loading backbone weights from {ckpt_path}")
         ckpt = torch.load(ckpt_path)
         state_dict = ckpt["state_dict"] if "state_dict" in ckpt else ckpt
+        # lazy way of loading backbone only: we only load matching keys
+        # by using strict=False
         self.load_state_dict(state_dict, strict=False)
 
     def forward(self, X, mask):

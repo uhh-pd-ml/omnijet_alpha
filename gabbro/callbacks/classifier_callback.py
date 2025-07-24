@@ -39,6 +39,7 @@ class ClassifierEvaluationCallback(L.Callback):
         save_dir = (
             trainer.default_root_dir + "/plots/" if self.image_path is None else self.image_path
         )
+        os.makedirs(save_dir, exist_ok=True)
         save_filename = save_dir + "/test_predictions.parquet"
         pylogger.info(f"Saving test predictions as parquet file to: {save_filename}")
         results_akarr = ak.Array(
