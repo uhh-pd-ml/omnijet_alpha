@@ -23,7 +23,8 @@ data:
   # Note: adapt this to the path where your tokenized dataset is stored
   data_dir: /data/dust/user/birkjosc/beegfs/datasets/jetclass_tokenized/2024-02-19_20-54-01_nonfissile_defect_a56f_TTBar_ZJetsToNuNu_test_split_to_trainvaltest
   dataset_kwargs_train:
-    max_n_files_per_type: 5
+    max_n_files_per_type: 5  # <-- we have 2 types, so we will have 2 * 5 = 10 files in total
+    n_jets_per_file: 1000  # <-- this would result in 10 * 1000 = 10000 jets in total
   dataset_kwargs_val:
     shuffle_only_once: true
   dataset_kwargs_common:
@@ -59,7 +60,7 @@ model:
     n_out_nodes: 2
     # backbone_weights_path: null
     # here you have to specify the path to the backbone weights if you want to load them
-    backbone_weights_path: /home/fresenbs/project_omnijet_alpha/omnijet_alpha/checkpoints/generative_8192_tokens/OmniJet_generative_model_UnintentionalPinscher_59.ckpt
+    backbone_weights_path: /home/birkjosc/repositories/omnijet_alpha/checkpoints/generative_8192_tokens/OmniJet_generative_model_UnintentionalPinscher_59.ckpt
     # ---
     embedding_dim: 256
     attention_dropout: 0.0
