@@ -22,7 +22,7 @@ load_weights_from: false
 
 data:
   # the `data_dir` is the path to the dataset (for JetClass this is where the train_100M, val_5M, ... folders are)
-  data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass/JetClass/
+  data_dir: /data/dust/user/birkjosc/datasets/jetclass/JetClass/
   batch_size: 512  # NOTE: adapt the limit_train_batches accordingly
   dataset_kwargs_train:
     max_n_files_per_type: 1  # for this example we only load one file per type
