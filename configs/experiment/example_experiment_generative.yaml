@@ -26,7 +26,7 @@ data:
   #       and the `config.yaml` that was used for the tokenization training
   #       since those will be used during the training to reconstruct the tokens
   #       to physical space
-  data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-19_20-54-01_nonfissile_defect_a56f_TTBar_ZJetsToNuNu
+  data_dir: /data/dust/user/birkjosc/beegfs/datasets/jetclass_tokenized/2024-02-19_20-54-01_nonfissile_defect_a56f_TTBar_ZJetsToNuNu
   dataset_kwargs_train:
     max_n_files_per_type: 100
   dataset_kwargs_val:

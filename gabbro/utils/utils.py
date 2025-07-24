@@ -1,8 +1,10 @@
 import warnings
 from importlib.util import find_spec
-from typing import Callable, List
+from pathlib import Path
+from typing import Callable, Dict, List
 
 import hydra
+import torch
 from lightning.pytorch import Callback
 from lightning.pytorch.loggers import Logger
 from lightning.pytorch.utilities import rank_zero_only
@@ -11,6 +13,47 @@ from omegaconf import DictConfig
 from gabbro.utils import pylogger, rich_utils
 
 log = pylogger.get_pylogger(__name__)
+
+
+def translate_bash_range(wildcard: str, verbose: bool = False):
+    """Translate bash range to list of strings with the corresponding numbers.
+
+    Parameters
+    ----------
+    wildcard : str
+        Wildcard string with bash range (or not).
+    verbose : bool, optional
+        If True, print debug messages.
+
+    Returns
+    -------
+    list
+        List of strings with the corresponding numbers.
+    """
+
+    # raise value error if two ranges are found
+    if wildcard.count("{") > 1:
+        raise ValueError(
+            f"Only one range is allowed in the wildcard. Provided the following wildcard: {wildcard}"
+        )
+
+    if "{" in wildcard and ".." in wildcard and "}" in wildcard:
+        log.info("Bash range found in wildcard --> translating to list of remaining wildcards.")
+        start = wildcard.find("{")
+        end = wildcard.find("}")
+        prefix = wildcard[:start]
+        suffix = wildcard[end + 1 :]
+        wildcard_range = wildcard[start + 1 : end]
+        start_number = int(wildcard_range.split("..")[0])
+        end_number = int(wildcard_range.split("..")[1])
+        if verbose:
+            log.info(
+                f"Prefix: {prefix}, Suffix: {suffix}, Start: {start_number}, End: {end_number}"
+            )
+        return [f"{prefix}{i}{suffix}" for i in range(start_number, end_number + 1)]
+    else:
+        # print("No range found in wildcard")
+        return [wildcard]
 
 
 def task_wrapper(task_func: Callable) -> Callable:
@@ -85,9 +128,9 @@ def extras(cfg: DictConfig) -> None:
         rich_utils.print_config_tree(cfg, resolve=True, save_to_file=True)
 
 
-def instantiate_callbacks(callbacks_cfg: DictConfig, ckpt_path: str = None) -> List[Callback]:
+def instantiate_callbacks(callbacks_cfg: DictConfig, ckpt_path: str = None) -> Dict[str, Callback]:
     """Instantiates callbacks from config."""
-    callbacks: List[Callback] = []
+    callbacks: Dict[str, Callback] = {}
 
     if not callbacks_cfg:
         log.warning("No callback configs found! Skipping..")
@@ -96,10 +139,10 @@ def instantiate_callbacks(callbacks_cfg: DictConfig, ckpt_path: str = None) -> L
     if not isinstance(callbacks_cfg, DictConfig):
         raise TypeError("Callbacks config must be a DictConfig!")
 
-    for _, cb_conf in callbacks_cfg.items():
+    for cb_name, cb_conf in callbacks_cfg.items():
         if isinstance(cb_conf, DictConfig) and "_target_" in cb_conf:
             log.info(f"Instantiating callback <{cb_conf._target_}>")
-            callbacks.append(hydra.utils.instantiate(cb_conf))
+            callbacks[cb_name] = hydra.utils.instantiate(cb_conf)
 
     return callbacks
 
@@ -166,6 +209,7 @@ def log_hyperparameters(object_dict: dict) -> None:
     hparams["git"] = object_dict.get("git")
     hparams["slurm"] = object_dict.get("slurm")
     hparams["load_weights_from"] = object_dict.get("load_weights_from")
+    hparams["gpu_properties"] = object_dict.get("gpu_properties")
 
     # send hparams to all loggers
     for logger in trainer.loggers:
@@ -210,3 +254,58 @@ def save_file(path: str, content: str) -> None:
     """Save file in rank zero mode (only on one process in multi-GPU setup)."""
     with open(path, "w+") as file:
         file.write(content)
+
+
+def get_gpu_properties(verbose=True):
+    """Returns a dictionary with the GPU properties of the available GPUs."""
+    gpu_properties = {}
+    for i in range(torch.cuda.device_count()):
+        gpu_properties[f"rank{i}"] = torch.cuda.get_device_properties(i).name
+    if verbose:
+        print(gpu_properties)
+    return gpu_properties
+
+
+def update_existing_dict_values(d: dict, u: dict):
+    """Update existing values in a dictionary with values from another dictionary."""
+    for k, v in u.items():
+        if k in d:
+            d[k] = v
+    return d
+
+
+@rank_zero_only
+def remove_empty_hydra_run_dir(dir_path):
+    """Helper function to remove empty (by hydra created) output dir.
+
+    Parameters
+    ----------
+    dir_path : str or Path
+        Path to the output dir.
+    """
+    if isinstance(dir_path, str):
+        dir_path = Path(dir_path)
+
+    log.info(f"Removing empty (by hydra created) output dir {dir_path}")
+    for file in ["config.yaml", "hydra.yaml", "overrides.yaml"]:
+        filepath = dir_path / ".hydra" / file
+        if filepath.exists():
+            log.info(f"- Removing {filepath}")
+            filepath.unlink()
+
+    log.info(f"- Removing {dir_path / '.hydra'}")
+    (dir_path / ".hydra").rmdir()
+    log.info(f"- Removing {dir_path}")
+    dir_path.rmdir()
+
+
+def print_field_structure_of_ak_array(ak_array):
+    """Prints the field structure of an awkward array."""
+    for field in ak_array.fields:
+        log.info(f" | {field}")
+        if len(ak_array[field].fields) > 0:
+            for inner_field in ak_array[field].fields:
+                log.info(f" |   | {inner_field}")
+                if len(ak_array[field][inner_field].fields) > 0:
+                    for inner_inner_field in ak_array[field][inner_field].fields:
+                        log.info(f" |   |   | {inner_inner_field}")

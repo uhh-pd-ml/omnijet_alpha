@@ -1,5 +1,9 @@
 """Utility functions for jet types."""
 
+from gabbro.utils.pylogger import get_pylogger
+
+logger = get_pylogger(__name__)
+
 jet_types_dict = {
     "QCD": {"label": 0, "tex_label": "$q/g$", "file_prefix": "ZJetsToNuNu_", "color": "C0"},
     "Hbb": {
@@ -80,6 +84,12 @@ def get_jet_type_from_file_prefix(file_prefix: str) -> str:
 
     E.g. "ZJetsToNuNu_" -> "QCD"
     """
+    if file_prefix.upper() in ["2016H_", "2016G_"]:
+        logger.warning(
+            "File prefix is '2016H_' or '2016G_', treating this as 'QCD' for compatibility reasons."
+        )
+        return "QCD"
+
     for jet_type, jet_type_dict in jet_types_dict.items():
         if jet_type_dict["file_prefix"] == file_prefix:
             return jet_type
