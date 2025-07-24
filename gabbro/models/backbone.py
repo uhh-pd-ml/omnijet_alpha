@@ -565,10 +565,7 @@ class BackboneClassificationLightning(L.LightningModule):
         return loss
 
     def on_train_epoch_end(self):
-        self.train_preds = np.concatenate(self.train_preds_list)
-        self.train_labels = np.concatenate(self.train_labels_list)
         print(f"Epoch {self.trainer.current_epoch} finished.", end="\r")
-        plt.plot(self.train_loss_history)
 
     def on_validation_epoch_start(self) -> None:
         self.val_preds_list = []
@@ -591,8 +588,7 @@ class BackboneClassificationLightning(L.LightningModule):
 
     def on_validation_epoch_end(self) -> None:
         """Lightning hook that is called when a validation epoch ends."""
-        self.val_preds = np.concatenate(self.val_preds_list)
-        self.val_labels = np.concatenate(self.val_labels_list)
+        print(f"Validation epoch {self.trainer.current_epoch} finished.", end="\r")
 
     def on_test_start(self):
         self.test_loop_preds_list = []
@@ -615,8 +611,7 @@ class BackboneClassificationLightning(L.LightningModule):
         self.log("test_acc", acc, on_step=True, on_epoch=True, prog_bar=True, sync_dist=True)
 
     def on_test_epoch_end(self):
-        self.test_preds = np.concatenate(self.test_loop_preds_list)
-        self.test_labels = np.concatenate(self.test_loop_labels_list)
+        print("Test epoch finished.")
 
     def configure_optimizers(self) -> Dict[str, Any]:
         """Configures optimizers and learning-rate schedulers to be used for training."""
