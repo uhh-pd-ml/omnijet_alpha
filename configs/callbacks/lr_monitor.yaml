@@ -4,5 +4,5 @@
 # Look at the above link for more detailed information.
 lr_monitor:
   _target_: lightning.pytorch.callbacks.LearningRateMonitor
-  logging_interval: "epoch" # "step" or "epoch" or None
+  logging_interval: "step" # "step" or "epoch" or None
   log_momentum: False # if True, will also log the momentum value of the optimizer at each step

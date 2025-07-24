@@ -1,6 +1,7 @@
 # https://hydra.cc/docs/configure_hydra/intro/
 
-# enable color logging
+# enable color logging by setting to 'colorlog' -- if set to 'none', logging will not
+# be modified by hydra (i.e. then the logging config from the code will be used)
 defaults:
   - override hydra_logging: colorlog
   - override job_logging: colorlog
