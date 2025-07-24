@@ -28,10 +28,15 @@ PYTHON_COMMAND="python gabbro/train.py experiment=example_experiment_tokenizatio
 
 # run the python command in the singularity container
 # ADJUST THIS to your singularity image path, or replace with docker://jobirk/omnijet:latest
-singularity exec --nv --bind /beegfs:/beegfs -B /data  \
+singularity exec --nv \
+    --containall \
+    --bind $REPO_DIR:$REPO_DIR \
+    --bind /data:/data \
+    --bind /home/birkjosc/.netrc:/home/birkjosc/.netrc \
     --env JOB_ID="$SLURM_JOB_ID" --env SLURM_LOGFILE="$LOGFILE" \
-    /data/dust/user/birkjosc/singularity_images/omnijet-latest.sif \
-    bash -c "source /opt/conda/bin/activate && $PYTHON_COMMAND"
+    --env HOSTNAME="$HOSTNAME" \
+    /data/dust/user/birkjosc/singularity_images/gabbro-v0.2.5.sif \
+    bash -c "source /opt/conda/bin/activate && export PYTHONPATH=${REPO_DIR}:${PYTHONPATH} && cd $REPO_DIR && $PYTHON_COMMAND"
 
 ## ---------------------- End of job script -----------------------------------
 ################################################################################
