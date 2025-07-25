@@ -84,6 +84,9 @@ class BackboneNextTokenPredictionLightning(L.LightningModule):
         print(f"Loading backbone weights from {ckpt_path}")
         ckpt = torch.load(ckpt_path)
         state_dict = ckpt["state_dict"] if "state_dict" in ckpt else ckpt
+        # drop all keys with "tril" included because we don't want to be restricted
+        # to the sequence length used in another training
+        state_dict = {k: v for k, v in state_dict.items() if "tril" not in k}
         # in this case, loading backbone weights (from a generative model) would
         # result in loading all weights
         self.load_state_dict(state_dict, strict=False)
@@ -500,6 +503,9 @@ class BackboneClassificationLightning(L.LightningModule):
         print(f"Loading backbone weights from {ckpt_path}")
         ckpt = torch.load(ckpt_path)
         state_dict = ckpt["state_dict"] if "state_dict" in ckpt else ckpt
+        # drop all keys with "tril" included because we don't want to be restricted
+        # to the sequence length used in another training
+        state_dict = {k: v for k, v in state_dict.items() if "tril" not in k}
         # lazy way of loading backbone only: we only load matching keys
         # by using strict=False
         self.load_state_dict(state_dict, strict=False)
