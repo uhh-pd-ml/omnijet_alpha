@@ -6,7 +6,6 @@ from typing import Any, Dict, Tuple
 
 import awkward as ak
 import lightning as L
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
@@ -85,6 +84,9 @@ class BackboneNextTokenPredictionLightning(L.LightningModule):
         print(f"Loading backbone weights from {ckpt_path}")
         ckpt = torch.load(ckpt_path)
         state_dict = ckpt["state_dict"] if "state_dict" in ckpt else ckpt
+        # drop all keys with "tril" included because we don't want to be restricted
+        # to the sequence length used in another training
+        state_dict = {k: v for k, v in state_dict.items() if "tril" not in k}
         # in this case, loading backbone weights (from a generative model) would
         # result in loading all weights
         self.load_state_dict(state_dict, strict=False)
@@ -501,6 +503,9 @@ class BackboneClassificationLightning(L.LightningModule):
         print(f"Loading backbone weights from {ckpt_path}")
         ckpt = torch.load(ckpt_path)
         state_dict = ckpt["state_dict"] if "state_dict" in ckpt else ckpt
+        # drop all keys with "tril" included because we don't want to be restricted
+        # to the sequence length used in another training
+        state_dict = {k: v for k, v in state_dict.items() if "tril" not in k}
         # lazy way of loading backbone only: we only load matching keys
         # by using strict=False
         self.load_state_dict(state_dict, strict=False)
@@ -569,10 +574,7 @@ class BackboneClassificationLightning(L.LightningModule):
         return loss
 
     def on_train_epoch_end(self):
-        self.train_preds = np.concatenate(self.train_preds_list)
-        self.train_labels = np.concatenate(self.train_labels_list)
         print(f"Epoch {self.trainer.current_epoch} finished.", end="\r")
-        plt.plot(self.train_loss_history)
 
     def on_validation_epoch_start(self) -> None:
         self.val_preds_list = []
@@ -595,19 +597,18 @@ class BackboneClassificationLightning(L.LightningModule):
 
     def on_validation_epoch_end(self) -> None:
         """Lightning hook that is called when a validation epoch ends."""
-        self.val_preds = np.concatenate(self.val_preds_list)
-        self.val_labels = np.concatenate(self.val_labels_list)
+        print(f"Validation epoch {self.trainer.current_epoch} finished.", end="\r")
 
     def on_test_start(self):
-        self.test_loop_preds_list = []
-        self.test_loop_labels_list = []
+        self.test_preds_list = []
+        self.test_labels_list = []
 
     def test_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int) -> None:
         """Perform a single test step on a batch of data from the test set."""
         loss, logits, targets = self.model_step(batch)
         preds = torch.softmax(logits, dim=1)
-        self.test_loop_preds_list.append(preds.float().detach().cpu().numpy())
-        self.test_loop_labels_list.append(targets.float().detach().cpu().numpy())
+        self.test_preds_list.append(preds.float().detach().cpu().numpy())
+        self.test_labels_list.append(targets.float().detach().cpu().numpy())
 
         acc = calc_accuracy(
             preds=preds.float().detach().cpu().numpy(),
@@ -619,8 +620,7 @@ class BackboneClassificationLightning(L.LightningModule):
         self.log("test_acc", acc, on_step=True, on_epoch=True, prog_bar=True, sync_dist=True)
 
     def on_test_epoch_end(self):
-        self.test_preds = np.concatenate(self.test_loop_preds_list)
-        self.test_labels = np.concatenate(self.test_loop_labels_list)
+        print("Test epoch finished.")
 
     def configure_optimizers(self) -> Dict[str, Any]:
         """Configures optimizers and learning-rate schedulers to be used for training."""

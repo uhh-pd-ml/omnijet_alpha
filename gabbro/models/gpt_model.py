@@ -1,23 +1,31 @@
-import logging
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import vector
 
+from gabbro.utils.pylogger import get_pylogger
+
 vector.register_awkward()
 
-logger = logging.getLogger(__name__)
+logger = get_pylogger(__name__)
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, embedding_dim, n_heads, attention_dropout):
+    def __init__(
+        self,
+        embedding_dim: int,
+        n_heads: int,
+        attention_dropout: float,
+        max_sequence_len: int = 256,
+        apply_causal_mask=True,
+    ):
         super().__init__()
         assert embedding_dim % n_heads == 0, "Embedding dim must be divisible by number of heads"
 
         self.head_dim = embedding_dim // n_heads
         self.n_heads = n_heads
         self.embedding_dim = embedding_dim
+        self.apply_causal_mask = apply_causal_mask
 
         self.key = nn.Linear(embedding_dim, embedding_dim, bias=False)
         self.query = nn.Linear(embedding_dim, embedding_dim, bias=False)
@@ -25,7 +33,7 @@ class MultiHeadAttention(nn.Module):
 
         # Create a causal attention mask and store it as self.tril. Being a
         # buffer means that it will not be included as parameters in the model.
-        self.register_buffer("tril", torch.tril(torch.ones(embedding_dim, embedding_dim)))
+        self.register_buffer("tril", torch.tril(torch.ones(max_sequence_len, max_sequence_len)))
         self.dropout = nn.Dropout(attention_dropout)
 
         self.proj = nn.Linear(embedding_dim, embedding_dim)
@@ -66,7 +74,8 @@ class MultiHeadAttention(nn.Module):
 
         # Apply the causal mask, cropped to the sequence length
         # (B, n_heads, T, T)
-        attn_scores = attn_scores.masked_fill(self.tril[:T, :T] == 0, float("-inf"))
+        if self.apply_causal_mask:
+            attn_scores = attn_scores.masked_fill(self.tril[:T, :T] == 0, float("-inf"))
 
         attn_weights = F.softmax(attn_scores, dim=-1)  # (B, n_heads, T, T)
         attn_weights = self.dropout(attn_weights)
@@ -85,12 +94,12 @@ class MultiHeadAttention(nn.Module):
 class FeedForward(nn.Module):
     """Simple linear layer followed by a non-linearity to be placed after the attention blocks."""
 
-    def __init__(self, embedding_dim):
+    def __init__(self, embedding_dim, factor=4, dropout=0.0):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(embedding_dim, 4 * embedding_dim),
+            nn.Linear(embedding_dim, factor * embedding_dim),
             nn.ReLU(),
-            nn.Linear(4 * embedding_dim, embedding_dim),
+            nn.Linear(factor * embedding_dim, embedding_dim),
             # nn.Dropout(dropout),
         )
 
@@ -101,11 +110,28 @@ class FeedForward(nn.Module):
 class GPT_DecoderBlock(nn.Module):
     """The GPT decoder block."""
 
-    def __init__(self, embedding_dim, attention_dropout, n_heads, verbose=False):
+    def __init__(
+        self,
+        embedding_dim: int,
+        attention_dropout: float,
+        n_heads: int,
+        verbose: bool = False,
+        apply_causal_mask: bool = True,
+        max_sequence_len: int = 256,
+        mlp_factor=4,
+        mlp_dropout=0.0,
+    ):
         super().__init__()
         self.verbose = verbose
-        self.mha_block = MultiHeadAttention(embedding_dim, n_heads, attention_dropout)
-        self.ff_block = FeedForward(embedding_dim)
+        self.apply_causal_mask = apply_causal_mask
+        self.mha_block = MultiHeadAttention(
+            embedding_dim,
+            n_heads,
+            attention_dropout,
+            apply_causal_mask=apply_causal_mask,
+            max_sequence_len=max_sequence_len,
+        )
+        self.ff_block = FeedForward(embedding_dim, factor=mlp_factor, dropout=mlp_dropout)
         self.layernorm_1 = nn.LayerNorm(embedding_dim)
         self.layernorm_2 = nn.LayerNorm(embedding_dim)
 
@@ -141,11 +167,9 @@ class BackboneModel(nn.Module):
         max_sequence_len,
         n_heads,
         n_GPT_blocks,
-        n_classes=2,
-        classify=False,
         verbosity=True,
         n_tokens=None,
-        return_embeddings=False,  # only there for now for backwards-compatibility with the old model
+        return_embeddings=False,  # for backwards-compatibility with the old model
         **kwargs,
     ):
         super().__init__()
@@ -165,6 +189,7 @@ class BackboneModel(nn.Module):
                         attention_dropout,
                         n_heads=n_heads,
                         verbose=self.verbose,
+                        max_sequence_len=max_sequence_len,
                     )
                 ]
             )

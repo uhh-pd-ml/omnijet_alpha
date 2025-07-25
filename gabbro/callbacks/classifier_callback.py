@@ -1,4 +1,5 @@
 """Callback for evaluating the classifier."""
+
 import os
 from typing import Callable
 
@@ -31,21 +32,29 @@ class ClassifierEvaluationCallback(L.Callback):
         self.comet_logger = None
         self.image_path = image_path
 
+    def setup_logger(self, rank: int = None) -> None:
+        self.logger = get_pylogger(f"{__name__}-ClassifierEvaluationCallback", rank=rank)
+
     def on_validation_epoch_end(self, trainer, pl_module):
+        self.setup_logger(rank=trainer.global_rank)
         self.compare_val_test_vs_train(trainer, pl_module, "val")
 
     def on_test_end(self, trainer, pl_module):
+        if trainer.global_rank != 0:
+            return {}
+
         # save the test predictions
+        self.setup_logger(rank=trainer.global_rank)
         save_dir = (
             trainer.default_root_dir + "/plots/" if self.image_path is None else self.image_path
         )
         os.makedirs(save_dir, exist_ok=True)
         save_filename = save_dir + "/test_predictions.parquet"
-        pylogger.info(f"Saving test predictions as parquet file to: {save_filename}")
+        self.logger.info(f"Saving test predictions as parquet file to: {save_filename}")
         results_akarr = ak.Array(
             {
-                "test_preds": pl_module.test_preds,
-                "test_labels": pl_module.test_labels,
+                "test_preds": np.concatenate(pl_module.test_preds_list),
+                "test_labels": np.concatenate(pl_module.test_labels_list),
             }
         )
         ak.to_parquet(results_akarr, save_filename)
@@ -55,25 +64,34 @@ class ClassifierEvaluationCallback(L.Callback):
 
         # save the results metrics dict as yaml
         save_filename = save_dir + "/test_metrics.yaml"
-        pylogger.info(f"Saving test metrics as yaml file to: {save_filename}")
+        self.logger.info(f"Saving test metrics as yaml file to: {save_filename}")
+        self.logger.info(f"Results metrics dict: {results_metrics_dict}")
         OmegaConf.save(results_metrics_dict, save_filename)
 
         return results_metrics_dict
 
     def compare_val_test_vs_train(self, trainer, pl_module, stage="val"):
+        self.logger.warning("Calling compare_val_test_vs_train")
+
         if stage == "val":
-            if not hasattr(pl_module, "val_preds") or not hasattr(pl_module, "val_labels"):
-                pylogger.info("No validation predictions found. Skipping plotting.")
+            if not hasattr(pl_module, "val_preds_list") or not hasattr(
+                pl_module, "val_labels_list"
+            ):
+                self.logger.info("No validation predictions found. Skipping plotting.")
                 return
-            if not hasattr(pl_module, "train_preds") or not hasattr(pl_module, "train_labels"):
-                pylogger.info("No training predictions found. Skipping plotting.")
+            if not hasattr(pl_module, "train_preds_list") or not hasattr(
+                pl_module, "train_labels_list"
+            ):
+                self.logger.info("No training predictions found. Skipping plotting.")
                 return
         elif stage == "test":
-            if not hasattr(pl_module, "test_preds") or not hasattr(pl_module, "test_labels"):
-                pylogger.info("No test predictions found. Skipping plotting.")
+            if not hasattr(pl_module, "test_preds_list") or not hasattr(
+                pl_module, "test_labels_list"
+            ):
+                self.logger.info("No test predictions found. Skipping plotting.")
                 return
 
-        pylogger.info(
+        self.logger.info(
             f"Running ClassifierEvaluationCallback epoch: {trainer.current_epoch} step:"
             f" {trainer.global_step}"
         )
@@ -81,8 +99,10 @@ class ClassifierEvaluationCallback(L.Callback):
         for logger in trainer.loggers:
             if isinstance(logger, L.pytorch.loggers.CometLogger):
                 self.comet_logger = logger.experiment
+                self.logger.info("Found comet logger.")
             elif isinstance(logger, L.pytorch.loggers.WandbLogger):
                 self.wandb_logger = logger.experiment
+                self.logger.info("Found wandb logger.")
 
         plot_dir = (
             trainer.default_root_dir + "/plots/" if self.image_path is None else self.image_path
@@ -95,15 +115,20 @@ class ClassifierEvaluationCallback(L.Callback):
         )
 
         if stage == "val":
-            n_classes = pl_module.val_labels.shape[1]
+            n_classes = pl_module.val_labels_list[0].shape[1]
         elif stage == "test":
-            n_classes = pl_module.test_labels.shape[1]
+            n_classes = pl_module.test_labels_list[0].shape[1]
 
         results_dict_all_classes = {}
 
         # plot the classifier output
         # calculate the R30/50 values for each signal class (1-9), class 0 is the background
         if stage == "val":
+            self.logger.info("Calculating metrics for validation set.")
+            pl_module.val_preds = np.concatenate(pl_module.val_preds_list)
+            pl_module.val_labels = np.concatenate(pl_module.val_labels_list)
+            pl_module.train_preds = np.concatenate(pl_module.train_preds_list)
+            pl_module.train_labels = np.concatenate(pl_module.train_labels_list)
             val_is_bkg = pl_module.val_labels[:, 0] == 1
             val_scoreB = pl_module.val_preds[:, 0]
             train_is_bkg = pl_module.train_labels[:, 0] == 1
@@ -118,6 +143,8 @@ class ClassifierEvaluationCallback(L.Callback):
             results_dict_all_classes["multiclass_accuracy_train"] = train_acc_multiclass
 
         elif stage == "test":
+            pl_module.test_preds = np.concatenate(pl_module.test_preds_list)
+            pl_module.test_labels = np.concatenate(pl_module.test_labels_list)
             val_is_bkg = pl_module.test_labels[:, 0] == 1
             val_scoreB = pl_module.test_preds[:, 0]
             val_acc_multiclass = calc_accuracy(pl_module.test_preds, pl_module.test_labels)
@@ -171,7 +198,10 @@ class ClassifierEvaluationCallback(L.Callback):
                 plot_filename=plot_filename_this_class,
                 postfix=f"_class{sig_class}",
                 stage=stage,
+                trainer=trainer,
             )
+
+        self.logger.info(f"Results for {stage}: {results_dict_all_classes}")
 
         return results_dict_all_classes
 
@@ -182,6 +212,7 @@ class ClassifierEvaluationCallback(L.Callback):
         val_is_signal,
         train_is_signal,
         plot_filename,
+        trainer,
         postfix="",
         stage="val",
     ):
@@ -199,9 +230,9 @@ class ClassifierEvaluationCallback(L.Callback):
 
         # report how many there are
         if n_nan_or_inf_train != 0:
-            pylogger.info(f"Found {n_nan_or_inf_train} nan or inf values in train scores.")
+            self.logger.info(f"Found {n_nan_or_inf_train} nan or inf values in train scores.")
         if n_nan_or_inf_val != 0:
-            pylogger.info(f"Found {n_nan_or_inf_val} nan or inf values in val scores.")
+            self.logger.info(f"Found {n_nan_or_inf_val} nan or inf values in val scores.")
 
         if train_scores is not None and train_is_signal is not None:
             train_scores = train_scores[~mask_train_scores_inf_or_nan]
@@ -282,9 +313,14 @@ class ClassifierEvaluationCallback(L.Callback):
         )
         fig.tight_layout()
         plt.show()
-        fig.savefig(plot_filename, dpi=300)
-        if self.comet_logger is not None:
-            self.comet_logger.log_image(plot_filename, name=plot_filename.split("/")[-1])  # noqa: E501
+        # only save and
+        if trainer.global_rank == 0:
+            self.logger.info(f"Saving plot to: {plot_filename} and upload to comet.")
+            fig.savefig(plot_filename, dpi=300)
+            if self.comet_logger is not None:
+                self.logger.info(f"Logging plot to comet: {plot_filename}")
+                self.comet_logger.log_image(plot_filename, name=plot_filename.split("/")[-1])  # noqa: E501
+        plt.close()
         results_dict = {
             f"{stage}_auc": float(np.round(val_auc, 5)),
             f"{stage}_r30": float(np.round(r30_val, 2)),

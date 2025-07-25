@@ -22,6 +22,7 @@ export REPO_DIR="/home/birkjosc/repositories/omnijet_alpha/"  # ADJUST THIS to y
 export PYTHONPATH="${REPO_DIR}:${PYTHONPATH}"
 
 cd $REPO_DIR
+
 LOGFILE="/data/dust/user/birkjosc/beegfs/gabbro_output//logs/slurm_logs/${SLURM_JOB_NAME}_${SLURM_JOB_ID}.log"  # ADJUST THIS to your log path
 
 PYTHON_COMMAND="python gabbro/train.py experiment=example_experiment_generative"
