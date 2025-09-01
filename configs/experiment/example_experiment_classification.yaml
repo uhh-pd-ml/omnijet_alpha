@@ -26,6 +26,7 @@ data:
     max_n_files_per_type: 5  # <-- we have 2 types, so we will have 2 * 5 = 10 files in total
     n_jets_per_file: 1000  # <-- this would result in 10 * 1000 = 10000 jets in total
   dataset_kwargs_val:
+    max_n_files_per_type: 5
     shuffle_only_once: true
   dataset_kwargs_common:
     random_seed_for_per_file_shuffling: ${seed}
