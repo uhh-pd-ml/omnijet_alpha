@@ -33,7 +33,7 @@ dataset_kwargs_val:
       - ${data.data_dir}/val_1M/TTBar_*
 
 dataset_kwargs_test:
-  max_n_files_per_type: 1
+  max_n_files_per_type: 5
   files_dict:
     QCD:
       - ${data.data_dir}/test_1M/ZJetsToNuNu_*
