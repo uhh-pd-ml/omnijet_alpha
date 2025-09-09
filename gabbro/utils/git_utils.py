@@ -15,8 +15,8 @@ def get_git_status():
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)  # nosec
     stdout, stderr = process.communicate()
     git_diff_output = stdout.decode("utf-8")
-    separator_start = f"\n{100*'='}\n{'=' * 10} start git diff {'=' * 10}\n"
-    separator_end = f"\n{'=' * 10} end git diff {'=' * 10}\n{100*'='}\n"
+    separator_start = f"\n{100 * '='}\n{'=' * 10} start git diff {'=' * 10}\n"
+    separator_end = f"\n{'=' * 10} end git diff {'=' * 10}\n{100 * '='}\n"
     return separator_start + git_diff_output + separator_end
 
 

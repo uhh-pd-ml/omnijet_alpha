@@ -221,12 +221,12 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     if cfg.get("train"):
         # --- Save config for reproducibility --- #
         # save config
-        cfg_backup_file = f'{cfg.trainer.get("default_root_dir")}/config.yaml'
+        cfg_backup_file = f"{cfg.trainer.get('default_root_dir')}/config.yaml"
         with open(cfg_backup_file, "w") as f:
             log.info(f"Saving config to {cfg_backup_file}")
             OmegaConf.save(cfg, f)
         # save resolved config
-        cfg_resolved_file = f'{cfg.trainer.get("default_root_dir")}/config_resolved.yaml'
+        cfg_resolved_file = f"{cfg.trainer.get('default_root_dir')}/config_resolved.yaml"
         with open(cfg_resolved_file, "w") as f:
             log.info(f"Saving resolved config to {cfg_resolved_file}")
             OmegaConf.save(cfg, f, resolve=True)
@@ -263,13 +263,13 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
                 if name_best_ckpt in callbacks:
                     ckpt_path = callbacks[name_best_ckpt].best_model_path
                     log.info(
-                        f"Rank {process_rank}/[0-{world_size-1}]: Using best model path from callback {name_best_ckpt}: {ckpt_path}"
+                        f"Rank {process_rank}/[0-{world_size - 1}]: Using best model path from callback {name_best_ckpt}: {ckpt_path}"
                     )
                 # if best ckpt not found in that callback, try with other name
                 elif name_ckpt in callbacks:
                     ckpt_path = callbacks[name_ckpt].best_model_path
                     log.info(
-                        f"Rank {process_rank}/[0-{world_size-1}]: Using best model path from callback {name_ckpt}: {ckpt_path}"
+                        f"Rank {process_rank}/[0-{world_size - 1}]: Using best model path from callback {name_ckpt}: {ckpt_path}"
                     )
                 # if best ckpt not found there either, just use the last ckpt
                 # which is stored separately as last.ckpt
@@ -278,21 +278,21 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
                         f"Neither '{name_best_ckpt}' nor '{name_ckpt}' found in callbacks!"
                     )
                     log.warning(
-                        f"Rank {process_rank}/[0-{world_size-1}]: Best ckpt not found! Using last.ckpt for testing..."
+                        f"Rank {process_rank}/[0-{world_size - 1}]: Best ckpt not found! Using last.ckpt for testing..."
                     )
                     ckpt_path = f"{cfg.trainer.default_root_dir}/checkpoints/last.ckpt"
             else:
                 # If the root directory does not have checkpoints, look for one that does
                 root_dir = cfg.trainer.default_root_dir
                 log.info(
-                    f"Rank {process_rank}/[0-{world_size-1}]: The root directory {root_dir} does not contain checkpoints. Searching other directories..."
+                    f"Rank {process_rank}/[0-{world_size - 1}]: The root directory {root_dir} does not contain checkpoints. Searching other directories..."
                 )
                 bigram = (root_dir.split("/")[-1]).split("_")[3]
                 log.info(f"Extracted bigram {bigram}")
                 # Get a list of all paths with this bigram in the parent directory of current run directory
                 p = Path(root_dir)
                 p = p.resolve()
-                directory_list = glob.glob(f"{os.path.join(p.parent,'*'+str(bigram)+'*')}")
+                directory_list = glob.glob(f"{os.path.join(p.parent, '*' + str(bigram) + '*')}")
                 directory_list.sort()
                 log.info(f"List of directories containing the bigram {bigram}: {directory_list}")
                 found_checkpoints = False
@@ -306,18 +306,18 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
                         if os.path.isfile(f"{checkpoint_directory}/best.ckpt"):
                             ckpt_path = f"{checkpoint_directory}/best.ckpt"
                             log.info(
-                                f"Rank {process_rank}/[0-{world_size-1}]: Using best checkpoint from {ckpt_path}"
+                                f"Rank {process_rank}/[0-{world_size - 1}]: Using best checkpoint from {ckpt_path}"
                             )
                         # -- last.ckpt
                         elif os.path.isfile(f"{checkpoint_directory}/last.ckpt"):
                             ckpt_path = f"{checkpoint_directory}/last.ckpt"
                             log.info(
-                                f"Rank {process_rank}/[0-{world_size-1}]: Using last checkpoint from {ckpt_path}"
+                                f"Rank {process_rank}/[0-{world_size - 1}]: Using last checkpoint from {ckpt_path}"
                             )
                         # -- the very last .ckpt file in the list of all checkpoint files
                         else:
                             all_checkpoints = glob.glob(
-                                f"{os.path.join(checkpoint_directory,'*.ckpt')}"
+                                f"{os.path.join(checkpoint_directory, '*.ckpt')}"
                             )
                             # If the directory does not have any .ckpt files
                             if len(all_checkpoints) == 0:
@@ -326,11 +326,13 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
                             all_checkpoints.sort()
                             ckpt_path = all_checkpoints[-1]  # Take the last one
                             log.info(
-                                f"Rank {process_rank}/[0-{world_size-1}]: Using last checkpoint from {ckpt_path}"
+                                f"Rank {process_rank}/[0-{world_size - 1}]: Using last checkpoint from {ckpt_path}"
                             )
                         found_checkpoints = True
                 # if we still couldn't find the checkpoint
-                assert found_checkpoints, f"Rank {process_rank}/[0-{world_size-1}]: No checkpoints could be found, exiting."
+                assert found_checkpoints, (
+                    f"Rank {process_rank}/[0-{world_size - 1}]: No checkpoints could be found, exiting."
+                )
         # ------------------------------------------------
 
         # update the default root dir for testing

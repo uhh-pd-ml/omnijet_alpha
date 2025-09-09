@@ -240,13 +240,16 @@ def main(ckpt_path, n_eval, dev):
             fig_pteta.set_dpi(300)
             fig_ptphi.set_dpi(300)
             fig_etaphi.savefig(
-                out_plot_dir / f"perturbed_tokens_reco_{i_token+1}tokens_etaphi.png", **save_kwargs
+                out_plot_dir / f"perturbed_tokens_reco_{i_token + 1}tokens_etaphi.png",
+                **save_kwargs,
             )
             fig_pteta.savefig(
-                out_plot_dir / f"perturbed_tokens_reco_{i_token+1}tokens_pteta.png", **save_kwargs
+                out_plot_dir / f"perturbed_tokens_reco_{i_token + 1}tokens_pteta.png",
+                **save_kwargs,
             )
             fig_ptphi.savefig(
-                out_plot_dir / f"perturbed_tokens_reco_{i_token+1}tokens_ptphi.png", **save_kwargs
+                out_plot_dir / f"perturbed_tokens_reco_{i_token + 1}tokens_ptphi.png",
+                **save_kwargs,
             )
 
     # ----------------------------------------------------------

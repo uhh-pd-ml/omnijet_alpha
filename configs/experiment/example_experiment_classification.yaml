@@ -1,16 +1,16 @@
 # @package _global_
 
 defaults:
-- override /data: iter_dataset_jetclass_classification_top_vs_qcd_transfer_learning.yaml
-- override /model: backbone_classification.yaml
-- override /callbacks: classifier_callbacks.yaml
-- override /trainer: gpu.yaml
+  - override /data: iter_dataset_jetclass_classification_top_vs_qcd_transfer_learning.yaml
+  - override /model: backbone_classification.yaml
+  - override /callbacks: classifier_callbacks.yaml
+  - override /trainer: gpu.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
 project_name: "omnijet-example-classification"
-tags: [ "classification" ]
+tags: ["classification"]
 
 run_note: ""
 
@@ -23,8 +23,8 @@ data:
   # Note: adapt this to the path where your tokenized dataset is stored
   data_dir: /data/dust/user/birkjosc/beegfs/datasets/jetclass_tokenized/2024-02-19_20-54-01_nonfissile_defect_a56f_TTBar_ZJetsToNuNu_test_split_to_trainvaltest
   dataset_kwargs_train:
-    max_n_files_per_type: 5  # <-- we have 2 types, so we will have 2 * 5 = 10 files in total
-    n_jets_per_file: 1000  # <-- this would result in 10 * 1000 = 10000 jets in total
+    max_n_files_per_type: 5 # <-- we have 2 types, so we will have 2 * 5 = 10 files in total
+    n_jets_per_file: 1000 # <-- this would result in 10 * 1000 = 10000 jets in total
   dataset_kwargs_val:
     max_n_files_per_type: 5
     shuffle_only_once: true

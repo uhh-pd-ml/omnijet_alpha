@@ -45,8 +45,8 @@ dataset_kwargs_train:
     #   - ${data.data_dir}/train_100M/WToQQ_*
     Tbqq:
       - ${data.data_dir}/train_100M/TTBar_*
-    # Tbl:
-    #   - ${data.data_dir}/train_100M/TTBarLep_*
+      # Tbl:
+      #   - ${data.data_dir}/train_100M/TTBarLep_*
 
 dataset_kwargs_val:
   max_n_files_per_type: 1
@@ -69,8 +69,8 @@ dataset_kwargs_val:
     #   - ${data.data_dir}/val_5M/WToQQ_*
     Tbqq:
       - ${data.data_dir}/val_5M/TTBar_*
-    # Tbl:
-    #   - ${data.data_dir}/val_5M/TTBarLep_*
+      # Tbl:
+      #   - ${data.data_dir}/val_5M/TTBarLep_*
 
 dataset_kwargs_test:
   max_n_files_per_type: 20

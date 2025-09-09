@@ -11,9 +11,9 @@ data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass/JetClass/
 
 dataset_kwargs_common:
   feature_dict: null
-    # part_pt: {multiply_by: 0.3, subtract_by: 2.7, func: np.log, inv_func: np.exp}
-    # part_eta: {multiply_by: 4}
-    # part_phi: {multiply_by: 4}
+  # part_pt: {multiply_by: 0.3, subtract_by: 2.7, func: np.log, inv_func: np.exp}
+  # part_eta: {multiply_by: 4}
+  # part_phi: {multiply_by: 4}
   n_files_at_once: 2
   labels_to_load:
     - label_QCD

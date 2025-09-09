@@ -12,7 +12,7 @@ model_kwargs:
 optimizer:
   _target_: torch.optim.AdamW
   _partial_: true
-  lr: 0.001  # ParT paper uses RAdam optimizer with initial lr of 0.001
+  lr: 0.001
   weight_decay: 0
 
 scheduler:

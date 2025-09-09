@@ -21,7 +21,7 @@ seed: 1603
 
 
 data:
-  batch_size: 256  # NOTE: adapt the limit_train_batches accordingly
+  batch_size: 256 # NOTE: adapt the limit_train_batches accordingly
   # NOTE: the `data_dir` must also include the `model_ckpt.ckpt` file of the tokenizer
   #       and the `config.yaml` that was used for the tokenization training
   #       since those will be used during the training to reconstruct the tokens
@@ -37,7 +37,7 @@ data:
     n_files_at_once: 200
     feature_dict:
       # part_token_id: {}
-      part_token_id_without_last: {}  # <-- this will be the input for the gen. model
+      part_token_id_without_last: {} # <-- this will be the input for the gen. model
       part_token_id_without_first: {} # <-- this will be the target for the gen. model
     token_id_cfg:
       remove_start_token: false
@@ -69,7 +69,7 @@ model:
   token_dir: ${data.data_dir}
   model_kwargs:
     # ---
-    return_embeddings: true  # meaning that the new head structure is used instead of the old one
+    return_embeddings: true # meaning that the new head structure is used instead of the old one
     backbone_weights_path: null
     # ---
     embedding_dim: 256

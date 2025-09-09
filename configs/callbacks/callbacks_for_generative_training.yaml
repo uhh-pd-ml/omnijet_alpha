@@ -25,10 +25,10 @@ model_checkpoint_best:
   save_last: false
 
 early_stopping:
- monitor: "val_loss"
- patience: 10
- mode: "min"
- verbose: true
+  monitor: "val_loss"
+  patience: 10
+  mode: "min"
+  verbose: true
 
 model_summary:
   max_depth: -1

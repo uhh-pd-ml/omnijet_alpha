@@ -28,7 +28,7 @@ seed: 1603
 load_weights_from: false
 
 data:
-  batch_size: 512  # NOTE: adapt the limit_train_batches accordingly
+  batch_size: 512 # NOTE: adapt the limit_train_batches accordingly
   dataset_kwargs_common:
     # n_jets_per_file: 1000
     n_files_at_once: 30
@@ -49,7 +49,7 @@ trainer:
   gradient_clip_val: 5
   log_every_n_steps: 10
   limit_train_batches: 5850 # 1900 for batch size 512, 3800 for batch size 256
-  limit_val_batches: 200  # --> using 200*512 = 102400 validation samples, around 10k per type
+  limit_val_batches: 200 # --> using 200*512 = 102400 validation samples, around 10k per type
   # precision: "16-mixed"  # seems to lead to problems with the VQVAE - "None has not attribute ".T""
   # num_sanity_val_steps: 10
 
@@ -65,12 +65,12 @@ model:
   scheduler:
     _target_: gabbro.schedulers.lr_scheduler.OneCycleCooldown
     _partial_: true
-    warmup: 4  # epochs until max_lr is reached
+    warmup: 4 # epochs until max_lr is reached
     cooldown: 20 # epochs to decrease to initial_lr after max_lr is reached
     cooldown_final: 50 # epochs to decrease to final_lr after max_lr is reached
     max_lr: 1e-3
     initial_lr: 5e-4
-    final_lr: 3e-4  # final_lr is used after the second cooldown
+    final_lr: 3e-4 # final_lr is used after the second cooldown
 
   # --- model architecture configuration ---
   model_type: VQVAENormFormer

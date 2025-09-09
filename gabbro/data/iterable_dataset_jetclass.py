@@ -262,7 +262,7 @@ class CustomIterableDataset(IterableDataset):
             self.logger.warning("Loading data only once. Will not load again.")
             self.logger.warning("--> This will be the data for all iterations.")
         for i_file, filename in enumerate(self.current_files):
-            self.logger.info(f"{i_file+1} / {len(self.current_files)} : {filename}")
+            self.logger.info(f"{i_file + 1} / {len(self.current_files)} : {filename}")
 
             if self.token_reco_cfg is not None:
                 gpu_available = torch.cuda.is_available()

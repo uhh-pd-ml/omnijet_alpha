@@ -21,7 +21,7 @@ load_weights_strict: false
 
 
 data:
-  batch_size: 2048  # NOTE: adapt the limit_train_batches accordingly
+  batch_size: 2048 # NOTE: adapt the limit_train_batches accordingly
   # data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-18_14-47-13_beefy_striker_6faa_all_types # transformer 512 tokens
   # data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-18_14-47-14_intensional_rigger_34b1_all_types # transformer 2048 tokens
   # data_dir: /beegfs/desy/user/birkjosc/datasets/jetclass_tokenized/2024-02-19_19-51-10_unstilted_verticil_c9f8_all_types # transformer 4096 tokens
@@ -59,7 +59,7 @@ model:
   # --- model architecture configuration ---
   model_kwargs_loaded: null
   model_kwargs:
-    n_tokens: null  # has to be null when not using tokens input
+    n_tokens: null # has to be null when not using tokens input
     input_dim: 3
     n_out_nodes: 2
   # --- optimizer configuration ---
@@ -72,12 +72,12 @@ model:
   scheduler:
     _target_: gabbro.schedulers.lr_scheduler.OneCycleCooldown
     _partial_: true
-    warmup: 4  # epochs until max_lr is reached
+    warmup: 4 # epochs until max_lr is reached
     cooldown: 20 # epochs to decrease to initial_lr after max_lr is reached
     cooldown_final: 50 # epochs to decrease to final_lr after max_lr is reached
     max_lr: 5e-3
     initial_lr: 2e-3
-    final_lr: 1e-3  # final_lr is used after the second cooldown
+    final_lr: 1e-3 # final_lr is used after the second cooldown
 
 
 task_name: "tokenization"

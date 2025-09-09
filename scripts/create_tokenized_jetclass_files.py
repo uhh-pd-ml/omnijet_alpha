@@ -121,7 +121,7 @@ def main(
 
     for stage, files in files_dict.items():
         for i, filename_in in enumerate(files):
-            log.info(f"{stage} file {i+1}/{len(files)}")
+            log.info(f"{stage} file {i + 1}/{len(files)}")
             filename_out = Path(out_dirs[stage]) / Path(filename_in).name.replace(
                 ".root", "_tokenized.parquet"
             )

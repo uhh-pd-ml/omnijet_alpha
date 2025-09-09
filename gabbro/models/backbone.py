@@ -166,7 +166,7 @@ class BackboneNextTokenPredictionLightning(L.LightningModule):
             # only look at next-token prediction of last token
             logits = logits[:, -1, :]  # (B, T, C) becomes (B, C)
             # apply softmax to get probabilities, and exclude the start-token (index 0)
-            # (otherwise it can happen, that the start token is prediced as the next token)
+            # (otherwise it can happen, that the start token is predicted as the next token)
             probs = F.softmax(logits[:, 1:], dim=-1)  # (B, C)
             # sample from the distribution
             idx_next = torch.multinomial(probs, num_samples=1) + 1  # (B, 1)
